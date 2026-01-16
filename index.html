@@ -28,6 +28,7 @@ document.getElementById("startBtn").onclick = async () => {
 
   mediaRecorder.onstop = async () => {
     document.getElementById("status").innerText = "送信中…";
+    console.log("audio size:", audioBlob.size);
 
     const audioBlob = new Blob(audioChunks, { type: "audio/webm" });
     const formData = new FormData();
