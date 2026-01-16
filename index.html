@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>音声会話MVP</title>
+</head>
+<body>
+
+  <h2>お話ししましょう</h2>
+  <button id="startBtn">はなす</button>
+  <p id="status">待機中</p>
+
+<script>
+const WEBHOOK_URL = "https://YOUR_N8N_DOMAIN/webhook/voice-chat";
+
+let mediaRecorder;
+let audioChunks = [];
+
+document.getElementById("startBtn").onclick = async () => {
+  document.getElementById("status").innerText = "録音中…";
+
+  const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+
+  mediaRecorder = new MediaRecorder(stream);
+  audioChunks = [];
+
+  mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
+
+  mediaRecorder.onstop = async () => {
+    document.getElementById("status").innerText = "送信中…";
+
+    const audioBlob = new Blob(audioChunks, { type: "audio/webm" });
+    const formData = new FormData();
+
+    formData.append("audio", audioBlob);
+    formData.append("session_id", "test-001");
+    formData.append("device_id", "tablet-01");
+
+    const response = await fetch(WEBHOOK_URL, {
+      method: "POST",
+      body: formData
+    });
+
+    const result = await response.json();
+
+    if (result.audio_url) {
+      const audio = new Audio(result.audio_url);
+      audio.play();
+      document.getElementById("status").innerText = "再生中";
+    } else {
+      document.getElementById("status").innerText = "応答なし";
+    }
+  };
+
+  mediaRecorder.start();
+
+  // ★ 自動停止（7秒）
+  setTimeout(() => {
+    mediaRecorder.stop();
+  }, 7000);
+};
+</script>
+
+</body>
+</html>
