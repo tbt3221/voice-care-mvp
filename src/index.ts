@@ -26,7 +26,7 @@ export default {
     });
 
     // 公開URL（R2 Public URL）
-    const publicUrl = `https://<YOUR_R2_PUBLIC_DOMAIN>/${filename}`;
+    const publicUrl = `https://pub-81d41d93ffbe426588a79231df17a999.r2.dev/${filename}`;
 
     return new Response(
       JSON.stringify({
