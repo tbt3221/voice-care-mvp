@@ -4,5 +4,5 @@ compatibility_date = "2026-01-17"
 
 [[r2_buckets]]
 binding = "VOICE_BUCKET"
-bucket_name = "voice-care"
+bucket_name = "voice"
 
