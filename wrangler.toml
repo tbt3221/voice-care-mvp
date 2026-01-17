@@ -1,0 +1,8 @@
+name = "voice-care-mvp"
+main = "src/index.ts"
+compatibility_date = "2026-01-17"
+
+# R2 を使うなら後で追加
+# [[r2_buckets]]
+# binding = "R2_BUCKET"
+# bucket_name = "your-bucket-name"
