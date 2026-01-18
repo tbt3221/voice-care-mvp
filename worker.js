@@ -57,7 +57,7 @@ export default {
       });
 
      return Response.json({
-  audio_url: `${new URL(request.url).origin}/${fileName}`
+  audio_url: `${new URL(request.url).origin}/audio/${fileName.split("/")[1]}`
 });
 
     }
