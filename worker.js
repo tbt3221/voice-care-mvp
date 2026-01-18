@@ -5,24 +5,23 @@ export default {
     // =========================
     // 音声取得（GET）
     // =========================
-    if (request.method === "GET" &&
-   (url.pathname.startsWith("/audio/") || url.pathname.startsWith("/tts/"))) {
+    if (request.method === "GET" && url.pathname.startsWith("/audio/")) {
+      const key = url.pathname.slice(1); // audio/xxx.mp3
 
-  const key = url.pathname.startsWith("/tts/")
-    ? "audio/" + url.pathname.split("/").pop()
-    : url.pathname.slice(1);
+      const object = await env.VOICE_BUCKET.get(key);
+      if (!object) {
+        return new Response("Not Found", { status: 404 });
+      }
 
-  const object = await env.VOICE_BUCKET.get(key);
-  if (!object) return new Response("Not Found", { status: 404 });
-
-  return new Response(object.body, {
-    headers: {
-      "Content-Type": "audio/mpeg",
-      "Accept-Ranges": "bytes"
+      return new Response(object.body, {
+        headers: {
+          "Content-Type": "audio/mpeg",
+          "Accept-Ranges": "bytes",
+          "Content-Length": object.size,
+          "Cache-Control": "public, max-age=31536000"
+        }
+      });
     }
-  });
-}
-
 
     // =========================
     // TTS生成（POST）
@@ -59,10 +58,10 @@ export default {
         httpMetadata: { contentType: "audio/mpeg" }
       });
 
-     return Response.json({
-  audio_url: `${new URL(request.url).origin}/audio/${fileName.split("/")[1]}`
-});
-
+      // ★ 必ず /audio/xxx.mp3 を返す
+      return Response.json({
+        audio_url: `${new URL(request.url).origin}/${fileName}`
+      });
     }
 
     return new Response("Not Found", { status: 404 });
