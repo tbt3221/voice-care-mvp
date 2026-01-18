@@ -66,6 +66,7 @@ document.getElementById("startBtn").onclick = async () => {
       let result;
       try {
         result = await response.json();
+        console.log("result:", result);
       } catch {
         document.getElementById("status").innerText = "応答JSONなし";
         return;
