@@ -19,6 +19,7 @@ export default {
           "Accept-Ranges": "bytes",
           "Content-Length": object.size,
           "Cache-Control": "public, max-age=31536000"
+          "Access-Control-Allow-Origin": "*"
         }
       });
     }
