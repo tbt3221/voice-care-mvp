@@ -67,29 +67,4 @@ export default {
 
     return new Response("Not Found", { status: 404 });
   }
-  // ====== 追加 ======
-  async scheduled(event, env, ctx) {
-    const EXPIRATION_HOURS = 24;
-    const now = Date.now();
-
-    let cursor = undefined;
-
-    do {
-      const list = await env.VOICE_BUCKET.list({
-        prefix: "audio/",
-        cursor
-      });
-
-      for (const obj of list.objects) {
-        const created = new Date(obj.uploaded).getTime();
-        const ageHours = (now - created) / (1000 * 60 * 60);
-
-        if (ageHours > EXPIRATION_HOURS) {
-          await env.VOICE_BUCKET.delete(obj.key);
-        }
-      }
-
-      cursor = list.cursor;
-    } while (cursor);
-  }
 };
