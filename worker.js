@@ -5,8 +5,12 @@ export default {
     // =========================
     // 音声取得（GET）
     // =========================
-    if (request.method === "GET" && url.pathname.startsWith("/audio/")) {
-  const key = url.pathname.slice(1);
+    if (request.method === "GET" &&
+   (url.pathname.startsWith("/audio/") || url.pathname.startsWith("/tts/"))) {
+
+  const key = url.pathname.startsWith("/tts/")
+    ? "audio/" + url.pathname.split("/").pop()
+    : url.pathname.slice(1);
 
   const object = await env.VOICE_BUCKET.get(key);
   if (!object) return new Response("Not Found", { status: 404 });
@@ -14,8 +18,7 @@ export default {
   return new Response(object.body, {
     headers: {
       "Content-Type": "audio/mpeg",
-      "Accept-Ranges": "bytes",
-      "Cache-Control": "public, max-age=31536000"
+      "Accept-Ranges": "bytes"
     }
   });
 }
