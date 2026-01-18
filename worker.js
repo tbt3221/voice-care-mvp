@@ -6,21 +6,20 @@ export default {
     // 音声取得（GET）
     // =========================
     if (request.method === "GET" && url.pathname.startsWith("/audio/")) {
-      const key = url.pathname.slice(1); // audio/xxx.mp3
+  const key = url.pathname.slice(1);
 
-      const object = await env.VOICE_BUCKET.get(key);
-      if (!object) {
-        return new Response("Not Found", { status: 404 });
-      }
+  const object = await env.VOICE_BUCKET.get(key);
+  if (!object) return new Response("Not Found", { status: 404 });
 
-      return new Response(object.body, {
-        headers: {
-          "Content-Type": "audio/mpeg",
-          "Accept-Ranges": "bytes",
-          "Cache-Control": "public, max-age=31536000"
-        }
-      });
+  return new Response(object.body, {
+    headers: {
+      "Content-Type": "audio/mpeg",
+      "Accept-Ranges": "bytes",
+      "Cache-Control": "public, max-age=31536000"
     }
+  });
+}
+
 
     // =========================
     // TTS生成（POST）
