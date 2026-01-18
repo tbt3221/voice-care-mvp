@@ -57,9 +57,10 @@ export default {
         httpMetadata: { contentType: "audio/mpeg" }
       });
 
-      return Response.json({
-        audio_url: `${url.origin}/${fileName}`
-      });
+     return Response.json({
+  audio_url: `${new URL(request.url).origin}/${fileName}`
+});
+
     }
 
     return new Response("Not Found", { status: 404 });
