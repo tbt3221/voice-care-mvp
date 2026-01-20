@@ -1,6 +1,7 @@
 name = "voice-care-mvp"
 main = "src/index.ts"
 compatibility_date = "2026-01-17"
+main = "src/index.ts"
 
 [[r2_buckets]]
 binding = "VOICE_BUCKET"
