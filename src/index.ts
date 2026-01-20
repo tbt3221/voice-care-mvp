@@ -77,4 +77,29 @@ export default {
 
     return new Response("Not Found", { status: 404 });
   }
+  async scheduled(event, env, ctx) {
+    const MAX_AGE_DAYS = 7; // ← ここで保持日数を指定
+    const now = Date.now();
+    const expireMs = MAX_AGE_DAYS * 24 * 60 * 60 * 1000;
+
+    let cursor: string | undefined = undefined;
+
+    do {
+      const list = await env.VOICE_BUCKET.list({
+        prefix: "audio/",
+        cursor
+      });
+
+      for (const obj of list.objects) {
+        const uploaded = new Date(obj.uploaded).getTime();
+
+        if (now - uploaded > expireMs) {
+          await env.VOICE_BUCKET.delete(obj.key);
+          console.log("deleted:", obj.key);
+        }
+      }
+
+      cursor = list.cursor;
+    } while (cursor);
+  }
 };
