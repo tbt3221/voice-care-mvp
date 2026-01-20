@@ -1,43 +1,80 @@
 export default {
-  async fetch(request: Request, env: any): Promise<Response> {
-    if (request.method !== "POST") {
-      return new Response("Method Not Allowed", { status: 405 });
+  async fetch(request: Request, env: any) {
+    const url = new URL(request.url);
+
+    // =====================
+    // 音声配信（GET /audio/xxx.mp3）
+    // =====================
+    if (request.method === "GET" && url.pathname.startsWith("/audio/")) {
+      const key = url.pathname.slice(1); // audio/xxx.mp3
+
+      const object = await env.VOICE_BUCKET.get(key);
+      if (!object) {
+        return new Response("Not Found", { status: 404 });
+      }
+
+      return new Response(object.body, {
+        headers: {
+          "Content-Type": "audio/mpeg",
+          "Accept-Ranges": "bytes",
+          "Cache-Control": "public, max-age=31536000"
+        }
+      });
     }
 
-    // バイナリを受信
-    const audioBuffer = await request.arrayBuffer();
+    // =====================
+    // TTS生成（POST）
+    // =====================
+    if (request.method === "POST") {
+      const { text } = await request.json();
 
-    if (audioBuffer.byteLength === 0) {
+      if (!text) {
+        return new Response(
+          JSON.stringify({ error: "text is required" }),
+          { status: 400 }
+        );
+      }
+
+      const openaiRes = await fetch("https://api.openai.com/v1/audio/speech", {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${env.OPENAI_API_KEY}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          model: "gpt-4o-mini-tts",
+          voice: "alloy",
+          input: text
+        })
+      });
+
+      if (!openaiRes.ok) {
+        const err = await openaiRes.text();
+        console.error("OpenAI error:", err);
+        return new Response("TTS failed", { status: 500 });
+      }
+
+      const audioBuffer = await openaiRes.arrayBuffer();
+      const id = crypto.randomUUID();
+      const filename = `audio/${id}.mp3`;
+
+      await env.VOICE_BUCKET.put(filename, audioBuffer, {
+        httpMetadata: { contentType: "audio/mpeg" }
+      });
+
       return new Response(
-        JSON.stringify({ error: "empty audio" }),
-        { status: 400 }
+        JSON.stringify({
+          audio_url: `${url.origin}/${filename}`
+        }),
+        {
+          headers: {
+            "Content-Type": "application/json",
+            "Access-Control-Allow-Origin": "*"
+          }
+        }
       );
     }
 
-    // ファイル名生成
-    const id = crypto.randomUUID();
-    const filename = `tts/${id}.mp3`;
-
-    // R2 に保存
-    await env.VOICE_BUCKET.put(filename, audioBuffer, {
-      httpMetadata: {
-        contentType: "audio/mpeg",
-      },
-    });
-
-    // 公開URL（R2 Public URL）
-    const publicUrl = `https://pub-81d41d93ffbe426588a79231df17a999.r2.dev/${filename}`;
-
-    return new Response(
-      JSON.stringify({
-        audio_url: publicUrl,
-      }),
-      {
-        headers: {
-          "Content-Type": "application/json",
-          "Access-Control-Allow-Origin": "*",
-        },
-      }
-    );
-  },
+    return new Response("Not Found", { status: 404 });
+  }
 };
