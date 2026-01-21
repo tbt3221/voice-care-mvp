@@ -1,8 +1,38 @@
 export default {
+  async fetch(request, env, ctx) {
+    const url = new URL(request.url)
+    // ===== 音声配信（CDNキャッシュ対象）=====
+    if (url.pathname.startsWith("/audio/")) {
+      const key = url.pathname.replace("/audio/", "")
+      const cacheKey = new Request(request.url, request)
+      const cache = caches.default
+
+      // ① キャッシュ確認
+      let response = await cache.match(cacheKey)
+      if (response) {
+        return response
+      }
+
+      // ② R2から取得
+      const object = await env.VOICE_BUCKET.get(`tts/${key}.mp3`)
+      if (!object) {
+        return new Response("Not Found", { status: 404 })
+      }
+
+      response = new Response(object.body, {
+        headers: {
+          "Content-Type": "audio/mpeg",
+          "Cache-Control": "public, max-age=31536000, immutable"
+        }
+      })
+
+      // ③ CDNに保存
+      ctx.waitUntil(cache.put(cacheKey, response.clone()))
+      return response
+    }
   // =====================
   // HTTPリクエスト（TTS & 配信）
   // =====================
-  async fetch(request, env) {
     if (request.method !== "POST") {
       return new Response("Method Not Allowed", { status: 405 });
     }
