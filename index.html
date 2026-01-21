@@ -17,6 +17,7 @@ let mediaRecorder;
 let audioChunks = [];
 
 document.getElementById("startBtn").onclick = async () => {
+  document.getElementById("startBtn").disabled = true;
   try {
     document.getElementById("status").innerText = "マイク取得中…";
 
@@ -73,12 +74,22 @@ document.getElementById("startBtn").onclick = async () => {
       }
 
       if (result.audio_url) {
-        const audio = new Audio(result.audio_url);
-        audio.play();
+        const audio = new Audio();
+        audio.src = result.audio_url;
+        audio.playsInline = true; // iOS対策
+        audio.onloadeddata = () => {
+        console.log("audio loaded:", audio.src);
+        };
+
+        audio.play().catch(err => {
+        console.error("audio play error:", err);
+      });
+
         document.getElementById("status").innerText = "再生中";
       } else {
         document.getElementById("status").innerText = "応答なし";
       }
+      document.getElementById("startBtn").disabled = false;
     };
 
     // ④ 録音開始
