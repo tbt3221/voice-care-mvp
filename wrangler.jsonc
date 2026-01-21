@@ -1,1 +1,13 @@
+{
+  "name": "voice-care-mvp",
+  "compatibility_date": "2026-01-21",
+  "main": "src/index.ts",
+
+  "r2_buckets": [
+    {
+      "binding": "VOICE_BUCKET",
+      "bucket_name": "voice"
+    }
+  ]
+}
 
