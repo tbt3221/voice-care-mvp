@@ -14,7 +14,6 @@ export default {
       }
 
       // ② R2から取得
-      const object = await env.VOICE_BUCKET.get(`audio/${key}.mp3`)
       if (!object) {
         return new Response("Not Found", { status: 404 })
       }
@@ -67,14 +66,13 @@ export default {
     const audioBuffer = await openaiRes.arrayBuffer();
     const id = crypto.randomUUID();
     // 保存
-　　const filename = `audio/${id}.mp3`
+    const filename = `audio/${id}.mp3`
     // 配信
-　　const object = await env.VOICE_BUCKET.get(`audio/${key}.mp3`)
-
+    const object = await env.VOICE_BUCKET.get(`audio/${key}.mp3`)
     await env.VOICE_BUCKET.put(filename, audioBuffer, {
       httpMetadata: { contentType: "audio/mpeg" }
     });
-
+    const origin = new URL(request.url).origin
     return new Response(
       JSON.stringify({
         audio_url: `${origin}/audio/${id}`
